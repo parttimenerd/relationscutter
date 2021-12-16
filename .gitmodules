@@ -1,0 +1,6 @@
+[submodule "lib/lemon"]
+	path = lib/lemon
+	url = https://github.com/hcorrada/lemon-mirror
+[submodule "lib/cxxopts"]
+	path = lib/cxxopts
+	url = https://github.com/jarro2783/cxxopts
