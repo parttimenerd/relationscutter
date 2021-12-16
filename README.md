@@ -3,7 +3,7 @@ RelationsCutter
 Calculates the leakage from the relations output of a modified [CBMC](https://github.com/parttimenerd/cbmc)
 (with the `RELATIONS` environment variable set).
 It creates a relations graph (which should be equivalent to a bit dependency graph) to compute the leakage of
-the program related to the output
+the program related to the output.
 
 Build it via `./build.sh` or `./build_debug.sh`.
 
@@ -18,3 +18,6 @@ Usage:
   -h, --help        Print usage
 ```
 
+License
+-------
+MIT
