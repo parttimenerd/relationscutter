@@ -102,6 +102,13 @@ namespace parser {
     std::vector<std::string> output;
   };
 
+  std::vector<std::string> combine(std::vector<std::string> first, std::vector<std::string> second) {
+    std::unordered_set<std::string> res;
+    res.insert(first.begin(), first.end());
+    res.insert(second.begin(), second.end());
+    return {res.begin(), res.end()};
+  }
+
   Aborted parse_loop_line(std::string &line) {
     /*
     c loop [loop id] [function name] [loop nr] [parent loop or -1]
@@ -115,7 +122,7 @@ namespace parser {
     | loutput [loop output/written variable 1] [instantiation 1] […]
      */
     return {
-      _parse_variables_part(line, "linput"),
+      combine(_parse_variables_part(line, "linput"), _parse_variables_part(line, "lmisc_input")),
             _parse_variables_part(line, "loutput")
     };
   }
