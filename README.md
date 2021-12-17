@@ -15,7 +15,12 @@ Usage:
 
   -i, --input arg   input variable prefixes (default: symex::nondet)
   -o, --output arg  output variable prefixes (default: "")
+  -m, --method arg  output method, that the output variables have to be 
+                    related to (default: main)
+  -v, --verbose     enable some debug output
+  -d, --debug       enable all debug output
   -h, --help        Print usage
+
 ```
 
 License
