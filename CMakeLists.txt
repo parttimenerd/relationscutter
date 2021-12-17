@@ -43,10 +43,11 @@ set(LEMON_INCLUDE_DIRS
 set(LEMON_LIBRARIES lemon)
 
 add_subdirectory(lib/cxxopts)
+add_subdirectory(lib/spdlog)
 
 file(GLOB SOURCES CONFIGURE_DEPENDS src/*.cpp src/*.hpp lib/* *.cc)
 string(REGEX REPLACE "src/main.cpp" "" SOURCES "${SOURCES}")
-set(TARGET_LIBS lemon cxxopts)
+set(TARGET_LIBS lemon cxxopts spdlog)
 
 include_directories(
         ${PROJECT_SOURCE_DIR}

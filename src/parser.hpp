@@ -7,6 +7,7 @@
 
 
 namespace parser {
+
   bool starts_with(std::string &string, std::string &&prefix) {
     return string.rfind(prefix, 0) == 0;
   }

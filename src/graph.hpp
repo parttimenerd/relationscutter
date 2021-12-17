@@ -9,10 +9,8 @@
 
 #include "lemon/smart_graph.h"
 #include "parser.hpp"
-#include "lemon/hao_orlin.h"
-#include "lemon/graph_to_eps.h"
-#include "lemon/dimacs.h"
 #include "lemon/preflow.h"
+#include "spdlog/spdlog.h"
 
 template <typename Node>
 struct NodePair {
@@ -43,6 +41,35 @@ public:
   bool has_variable(std::string variable) const {
     return nodes_per_variable.find(variable) != nodes_per_variable.end();
   }
+
+  [[nodiscard]] std::vector<std::string> find_ind_vars(const std::string& method, const std::string& ind_var_prefix) const {
+    std::unordered_map<std::string, int> variables;
+    for (const auto &[variable, _]: nodes_per_variable) {
+      if (variable.rfind(method + "::", 0) == 0 &&
+          (variable.find("::" + ind_var_prefix) != std::string::npos || variable.find("." + ind_var_prefix) != std::string::npos)) {
+        auto hash_index = variable.find('#');
+        auto base = variable.substr(0, hash_index);
+        auto num = std::stoi(variable.substr(hash_index + 1));
+        if (!std::get<1>(variables.try_emplace(base, num))) {
+          variables[base] = std::max(num, variables[base]);
+        }
+      }
+    }
+    std::vector<std::string> ret;
+    std::transform(variables.begin(), variables.end(), std::back_inserter(ret), [](const auto &item){
+      return std::get<0>(item) + "#" + std::to_string(std::get<1>(item));
+    });
+    return ret;
+  }
+
+  [[nodiscard]] std::vector<std::string> find_ind_vars(const std::string& method, const std::vector<std::string>& ind_var_prefixes) const {
+    std::unordered_set<std::string> ret;
+    for (const auto &prefix: ind_var_prefixes) {
+      auto vars = find_ind_vars(method, prefix);
+      ret.insert(vars.begin(), vars.end());
+    }
+    return {ret.begin(), ret.end()};
+  }
 };
 
 class RelationsGraph
@@ -66,11 +93,11 @@ class RelationsGraph
     auto source = graph.addNode();
     auto sink = graph.addNode();
     for (const auto &input : inputs) {
-      std::cout << "source -> " << graph.id(input.start) << "\n";
+      SPDLOG_DEBUG("source -> {}", graph.id(input.start));
       capacities.set(graph.addArc(source, input.start), infty);
     }
     for (const auto &output : outputs) {
-      std::cout << graph.id(output.end) << " -> sink" << "\n";
+      SPDLOG_DEBUG("{} -> sink", graph.id(output.end));
       capacities.set(graph.addArc(output.end, sink), infty);
     }
     source_and_sink = {source, sink};
@@ -79,11 +106,11 @@ class RelationsGraph
   void connect_aborted(parser::Aborted aborted) {
      auto inner = graph.addNode();
      for (const auto &in: variables.nodes(aborted.input)) {
-       std::cout << graph.id(in.end) << " -> inner " << graph.id(inner) << "\n";
+       SPDLOG_DEBUG("{} -> inner", graph.id(in.end), graph.id(inner));
        capacities.set(graph.addArc(in.end, inner), infty);
      }
      for (const auto &out: variables.nodes(aborted.output)) {
-       std::cout << "inner " << graph.id(inner) << " -> " << graph.id(out.start) << "\n";
+       SPDLOG_DEBUG("inner {} -> {}", graph.id(inner), graph.id(out.start));
        capacities.set(graph.addArc(inner, out.start), infty);
      }
   }
@@ -111,8 +138,8 @@ public:
         for (const auto &f: from) {
           rg->graph.id(rg->node(f).end);
           rg->graph.id(rg->node(to).start);
-          std::cout << f << " -> " << to << "\n";
-          std::cout << "Arc(" << rg->graph.id(rg->node(f).end) << ", " << rg->graph.id(rg->node(to).start) << ")\n";
+          SPDLOG_DEBUG("{} -> {}", f, to);
+          SPDLOG_DEBUG("Arc({}, {})", rg->graph.id(rg->node(f).end), rg->graph.id(rg->node(to).start));
           rg->capacities.set(rg->graph.addArc(rg->node(f).end, rg->node(to).start), rg->infty);
         }
       } else if (parser::is_variable_line(line)) {
@@ -137,7 +164,7 @@ public:
       auto start = graph.addNode();
       auto end = graph.addNode();
       capacities.set(graph.addArc(start, end), weight);
-      std::cout << nodes.size() << ": Node(" << graph.id(start) << ", " << graph.id(end) << ")\n";
+      SPDLOG_DEBUG("{}: Node({}, {})", nodes.size(), graph.id(start), graph.id(end));
       nodes.push_back({start, end});
     }
     return nodes.at(id);
@@ -155,15 +182,17 @@ public:
     return res;
   }
 
+  std::vector<std::string> find_ind_vars(const std::string& method, const std::vector<std::string>& ind_var_prefixes) const {
+    return variables.find_ind_vars(method, ind_var_prefixes);
+  }
+
   int compute() {
-    std::ofstream os("/tmp/bla.ps");
-    lemon::graphToEps(graph, os).run();
     auto [source, sink] = source_and_sink.value();
     lemon::Preflow<Graph> flow(graph, capacities, source, sink);
     for (const auto &arc: graph.arcs()) {
-      std::cout << graph.id(graph.source(arc)) << " → " << graph.id(graph.target(arc)) << " = " << capacities[arc] << "\n";
+      SPDLOG_DEBUG("{} → {} = {}", graph.id(graph.source(arc)), graph.id(graph.target(arc)), capacities[arc]);
     }
-    std::cout << graph.id(source) << " -> " << graph.id(sink) << "\n";
+    SPDLOG_DEBUG("{} -> {}", graph.id(source), graph.id(sink));
     flow.run();
     return flow.flowValue();
   }
