@@ -68,9 +68,9 @@ namespace parser {
     ss >> name;
     std::string entry;
     while (ss >> entry) {
-      size_t var;
+      long var;
       if (std::stringstream(entry) >> var) {
-        variables.push_back(var);
+        variables.push_back(labs(var));
       }
     }
     return {name, variables};
