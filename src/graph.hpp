@@ -32,7 +32,12 @@ public:
   std::vector<Node> nodes(std::vector<std::string> variables) const {
     std::vector<Node> res;
     for (const auto &variable: variables) {
-      auto nodes = nodes_per_variable.at(variable);
+      auto it = nodes_per_variable.find(variable);
+      if (it == nodes_per_variable.end()) {
+        spdlog::warn("Variable {} not found", variable);
+        continue;
+      }
+      auto nodes = it->second;
       res.insert(res.end(), nodes.begin(), nodes.end());
     }
     return res;
