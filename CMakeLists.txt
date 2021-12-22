@@ -47,6 +47,7 @@ add_subdirectory(lib/spdlog)
 
 file(GLOB SOURCES CONFIGURE_DEPENDS src/*.cpp src/*.hpp lib/* *.cc)
 string(REGEX REPLACE "src/main.cpp" "" SOURCES "${SOURCES}")
+string(REGEX REPLACE "src/test.cpp" "" SOURCES "${SOURCES}")
 set(TARGET_LIBS lemon cxxopts spdlog)
 
 include_directories(
@@ -56,3 +57,17 @@ include_directories(
 )
 add_executable(${PROJECT_NAME} ${SOURCES} src/main.cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${TARGET_LIBS})
+
+
+Include(FetchContent)
+
+FetchContent_Declare(
+        Catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG        v3.0.0-preview3
+)
+
+FetchContent_MakeAvailable(Catch2)
+
+add_executable(tests ${SOURCES} src/test.cpp)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain ${TARGET_LIBS})

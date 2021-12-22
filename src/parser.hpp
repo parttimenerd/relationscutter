@@ -6,6 +6,11 @@
 #define RELATIONSCUTTER_PARSER_HPP
 
 
+#include <string>
+#include <sstream>
+#include <cstring>
+#include <vector>
+#include <unordered_set>
 namespace parser {
 
   bool starts_with(std::string &string, std::string &&prefix) {
