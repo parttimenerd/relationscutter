@@ -1,4 +1,4 @@
-RelationsCutter
+Relationscutter
 ===============
 Calculates the leakage from the relations output of a modified [CBMC](https://github.com/parttimenerd/cbmc)
 (with the `RELATIONS` environment variable set).
@@ -22,6 +22,9 @@ Usage:
   -h, --help        Print usage
 
 ```
+
+[dsharpy](https://github.com/parttimenerd/dsharpy) is a tool that combines the relationscutter with
+the modified CBMC into a usable analysis tool (with some preprocessing).
 
 License
 -------
